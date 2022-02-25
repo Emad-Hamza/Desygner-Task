@@ -6,6 +6,7 @@ use App\Repository\ImageRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation as JMSSerializer;
 
 /**
  * @ORM\Entity(repositoryClass=ImageRepository::class)
@@ -21,21 +22,25 @@ class Image
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @JMSSerializer\Groups({"imageData"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @JMSSerializer\Groups({"imageData"})
      */
     private $provider;
 
     /**
      * @ORM\ManyToMany(targetEntity=Tag::class, inversedBy="images")
+     * @JMSSerializer\Groups({"imageData"})
      */
     private $tags;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     * @JMSSerializer\Groups({"imageData"})
      */
     private $externalUrl;
 
