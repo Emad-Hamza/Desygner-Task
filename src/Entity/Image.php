@@ -13,6 +13,8 @@ use JMS\Serializer\Annotation as JMSSerializer;
  */
 class Image
 {
+    const LOCAL = 'local';
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -21,28 +23,34 @@ class Image
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
-     * @JMSSerializer\Groups({"imageData"})
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @JMSSerializer\Groups({"uploaded","search"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @JMSSerializer\Groups({"imageData"})
+     * @JMSSerializer\Groups({"uploaded","external", "search"})
      */
     private $provider;
 
     /**
      * @ORM\ManyToMany(targetEntity=Tag::class, inversedBy="images")
-     * @JMSSerializer\Groups({"imageData"})
+     * @JMSSerializer\Groups({"uploaded","external", "search"})
      */
     private $tags;
 
     /**
      * @ORM\Column(type="text", nullable=true)
-     * @JMSSerializer\Groups({"imageData"})
      */
     private $externalUrl;
+
+    /**
+     * @JMSSerializer\Groups({"uploaded", "external", "search"})
+     * @JMSSerializer\Accessor(getter="getUrl")
+     * @JMSSerializer\Type("string")
+     */
+    private ?string $url = null;
 
     public function __construct()
     {
@@ -113,6 +121,24 @@ class Image
 
         return $this;
     }
-    
+
+    /**
+     * @return string|null
+     */
+    public function getUrl(): ?string
+    {
+        return $this->url;
+    }
+
+    /**
+     * @param string|null $url
+     */
+    public function setUrl(?string $url): void
+    {
+        $this->url = $url;
+    }
+
+
+
 
 }
