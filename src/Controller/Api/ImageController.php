@@ -276,7 +276,7 @@ class ImageController extends AbstractController
      *     name="tag",
      *     in="path",
      *     type="string",
-     *     required=true,
+     *     required=false,
      * )
      *
      * @SWG\Parameter(
@@ -320,10 +320,13 @@ class ImageController extends AbstractController
      *     )
      * )
      *
-     * @param string $tag
+     * @param string|null $tag
+     * @param Request $request
      * @param ImageRepository $imageRepository
+     * @param PaginatorInterface $paginator
+     * @return array
      */
-    public function search(string $tag, Request $request,
+    public function search(?string $tag, Request $request,
                            ImageRepository $imageRepository,
                            PaginatorInterface $paginator)
     {

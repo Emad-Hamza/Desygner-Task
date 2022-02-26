@@ -53,7 +53,7 @@ class ImageRepository extends ServiceEntityRepository
     */
 
 
-   public function findAllByTagAndProviderQuery($tag, $provider=null)
+   public function findAllByTagAndProviderQuery($tag=null, $provider=null)
    {
        $qb = $this->createQueryBuilder('i');
        if ($provider) {
@@ -61,10 +61,12 @@ class ImageRepository extends ServiceEntityRepository
                ->setParameter('provider', $provider);
        }
 
-       $qb->leftJoin('i.tags', 'tags')
-           ->andWhere('tags.name LIKE :tag')
-           ->setParameter('tag', '%'.$tag.'%')
-       ;
+       if ($tag) {
+           $qb->leftJoin('i.tags', 'tags')
+               ->andWhere('tags.name LIKE :tag')
+               ->setParameter('tag', '%'.$tag.'%')
+           ;
+       }
 
        return $qb;
 
