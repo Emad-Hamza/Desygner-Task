@@ -14,6 +14,7 @@
         "friendsofsymfony/rest-bundle": "*",
         "jms/serializer": "^3.17",
         "jms/serializer-bundle": "^4.0",
+        "knplabs/knp-paginator-bundle": "^5.8",
         "lexik/jwt-authentication-bundle": "^2.14",
         "nelmio/api-doc-bundle": "3.10.1",
         "phpdocumentor/reflection-docblock": "^5.3",

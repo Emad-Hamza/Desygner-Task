@@ -7,8 +7,11 @@ use App\Entity\Tag;
 use App\Form\ExternalImageType;
 use App\Form\ImageType;
 use App\Form\UploadedImageType;
+use App\Repository\ImageRepository;
 use App\Repository\TagRepository;
 use App\Services\FileUploader;
+use FOS\RestBundle\Serializer\Serializer;
+use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,6 +43,7 @@ class ImageController extends AbstractController
 
 
     /**
+     * Add new image through direct upload
      * @Route("/upload/new", name="api_image_upload_new", methods={"POST"})
      * @Rest\View(serializerGroups={"uploaded"})
      * @Security("has_role('ROLE_ADMIN')")
@@ -144,6 +148,7 @@ class ImageController extends AbstractController
     }
 
     /**
+     * Add new image through external url
      * @Route("/external/new", name="api_image_external_new", methods={"POST"})
      * @Rest\View(serializerGroups={"external"})
      * @Security("has_role('ROLE_ADMIN')")
@@ -214,7 +219,12 @@ class ImageController extends AbstractController
      * )
      *
      * @param Request $request
+     * @param TagRepository $tagRepository
      * @return Image|\Symfony\Component\Form\FormInterface
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
     public function newExternal(Request $request, TagRepository $tagRepository)
     {
@@ -253,6 +263,87 @@ class ImageController extends AbstractController
             }
         }
         throw new BadRequestHttpException('Form is not valid.');
+    }
+
+    /**
+     * Search images by tag and provider
+     * @Route("/search/{tag}", name="api_image_search", methods={"GET"})
+     * @Rest\View(serializerGroups={"external"})
+     * @Security("has_role('ROLE_USER')")
+     *
+     * @SWG\Parameter(
+     *     name="tag",
+     *     in="path",
+     *     type="string",
+     *     required=true,
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="provider",
+     *     in="query",
+     *     type="string",
+     *     required=false,
+     * )
+     *
+     * @SWG\Parameter(
+     *     name="page",
+     *     in="query",
+     *     type="integer",
+     *     required=false,
+     * )
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Returns the  collection of Images objects that match the search criteria.",
+     *     @SWG\Schema(
+     *         type="object",
+     *         @SWG\Property(
+     *            property="images",
+     *            @SWG\Items(type="object",
+     *                ref=@Model(type=Image::class, groups={"search"})),
+     *         ),
+     *         @SWG\Property(property="current_page", type="integer"),
+     *         @SWG\Property(property="next_page", type="integer"),
+     *         @SWG\Property(property="previous_page", type="integer")
+     *
+     * )
+     * )
+     * @param string $tag
+     * @param ImageRepository $imageRepository
+     */
+    public function search(string $tag, Request $request,
+                           ImageRepository $imageRepository,
+                           PaginatorInterface $paginator)
+    {
+        $provider = $request->query->get('provider');
+        $query = $imageRepository->findAllByTagAndProviderQuery($tag, $provider);
+//        $query   = $imageRepository->createQueryBuilder('i');
+        $pagination = $paginator->paginate(
+            $query, /* query NOT result */
+            $request->query->getInt('page', 1), /*page number*/
+            20 /*limit per page*/
+        );
+        $totalNumberOfPages = floor($pagination->getTotalItemCount() / $pagination->getItemNumberPerPage());
+
+        $nextPage = null;
+        $previousPage = null;
+        
+        if ($pagination->getCurrentPageNumber() < $totalNumberOfPages) {
+            $nextPage = $pagination->getCurrentPageNumber() +1;
+        }
+
+        if ($pagination->getCurrentPageNumber() > 1) {
+            $previousPage = $pagination->getCurrentPageNumber() -1;
+        }
+
+            
+        return ['images' => $pagination->getItems(),
+            'current_page'=>$pagination->getCurrentPageNumber(),
+            'next_page' => $nextPage,
+            'prevoious_page' => $previousPage
+            ];
+
+
     }
 
 

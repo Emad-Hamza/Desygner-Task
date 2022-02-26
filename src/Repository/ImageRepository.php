@@ -4,7 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Image;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
+use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * @method Image|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,7 +17,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ImageRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+
+    public function __construct(ManagerRegistry $registry, PaginatorInterface $paginator)
     {
         parent::__construct($registry, Image::class);
     }
@@ -47,4 +51,24 @@ class ImageRepository extends ServiceEntityRepository
         ;
     }
     */
+
+
+   public function findAllByTagAndProviderQuery($tag, $provider=null)
+   {
+       $qb = $this->createQueryBuilder('i');
+       if ($provider) {
+           $qb->andWhere('i.provider =:provider')
+               ->setParameter('provider', $provider);
+       }
+
+       $qb->leftJoin('i.tags', 'tags')
+           ->andWhere('tags.name LIKE :tag')
+           ->setParameter('tag', '%'.$tag.'%')
+       ;
+
+       return $qb;
+
+   }
+
+
 }
