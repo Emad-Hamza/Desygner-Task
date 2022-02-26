@@ -326,7 +326,7 @@ class ImageController extends AbstractController
      * @param PaginatorInterface $paginator
      * @return array
      */
-    public function search(?string $tag, Request $request,
+    public function search(?string $tag=null, Request $request,
                            ImageRepository $imageRepository,
                            PaginatorInterface $paginator)
     {
@@ -338,7 +338,7 @@ class ImageController extends AbstractController
             $request->query->getInt('page', 1), /*page number*/
             10 /*limit per page*/
         );
-        $totalNumberOfPages = floor($pagination->getTotalItemCount() / $pagination->getItemNumberPerPage());
+        $totalNumberOfPages = round($pagination->getTotalItemCount() / $pagination->getItemNumberPerPage());
 
         $nextPage = null;
         $previousPage = null;
