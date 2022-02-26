@@ -20,7 +20,7 @@ class ImagePostLoad
         if($image->getProvider() == Image::LOCAL)
         {
             $imagePublicUrl = $kernel->getContainer()->getParameter('base_url').
-            'uploads'. $image->getName();
+            '/uploads/'. $image->getName();
         $image->setUrl($imagePublicUrl);
         }
         else {
