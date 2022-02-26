@@ -333,14 +333,16 @@ class ImageController extends AbstractController
         $pagination = $paginator->paginate(
             $query, /* query NOT result */
             $request->query->getInt('page', 1), /*page number*/
-            20 /*limit per page*/
+            10 /*limit per page*/
         );
         $totalNumberOfPages = floor($pagination->getTotalItemCount() / $pagination->getItemNumberPerPage());
 
         $nextPage = null;
         $previousPage = null;
-        if ($pagination->getCurrentPageNumber() > $totalNumberOfPages
-        || $pagination->getCurrentPageNumber() < 1) {
+        
+        if ( $totalNumberOfPages != 0 &&
+        ($pagination->getCurrentPageNumber() > $totalNumberOfPages
+        || $pagination->getCurrentPageNumber() < 1)) {
             throw new BadRequestHttpException('Page value is not valid');
         }
         if ($pagination->getCurrentPageNumber() < $totalNumberOfPages) {

@@ -24,6 +24,15 @@ class UserController extends AbstractController
      * @Route("/library/add/{image}", name="app_api_user_library_add", methods={"PUT"})
      * @Security("has_role('ROLE_USER')")
      * Adding image to user's library
+     *
+     * @SWG\Parameter(
+     *     name="image",
+     *     in="path",
+     *     description="Image id",
+     *     type="integer",
+     *     required=true,
+     * )
+     *
      * @SWG\Response(
      *     response=200,
      *     description="Added successfully",
