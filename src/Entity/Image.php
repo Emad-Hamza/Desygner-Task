@@ -19,24 +19,25 @@ class Image
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @JMSSerializer\Groups({"uploaded","external", "search", "user"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @JMSSerializer\Groups({"uploaded","search"})
+     * @JMSSerializer\Groups({"uploaded","search", "user"})
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @JMSSerializer\Groups({"uploaded","external", "search"})
+     * @JMSSerializer\Groups({"uploaded","external", "search", "user"})
      */
     private $provider;
 
     /**
      * @ORM\ManyToMany(targetEntity=Tag::class, inversedBy="images")
-     * @JMSSerializer\Groups({"uploaded","external", "search"})
+     * @JMSSerializer\Groups({"uploaded","external", "search", "user"})
      */
     private $tags;
 
@@ -46,7 +47,7 @@ class Image
     private $externalUrl;
 
     /**
-     * @JMSSerializer\Groups({"uploaded", "external", "search"})
+     * @JMSSerializer\Groups({"uploaded", "external", "search", "user"})
      * @JMSSerializer\Accessor(getter="getUrl")
      * @JMSSerializer\Type("string")
      */
@@ -56,6 +57,12 @@ class Image
     {
         $this->tags = new ArrayCollection();
     }
+
+    public function __toString()
+    {
+        return (string) $this->getId();
+    }
+
 
     public function getId(): ?int
     {
@@ -118,7 +125,6 @@ class Image
     public function setExternalUrl(?string $externalUrl): self
     {
         $this->externalUrl = $externalUrl;
-
         return $this;
     }
 

@@ -9,9 +9,11 @@ use App\Form\ImageType;
 use App\Form\UploadedImageType;
 use App\Repository\TagRepository;
 use App\Services\FileUploader;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Swagger\Annotations as SWG;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -36,50 +38,17 @@ class ImageController extends AbstractController
         $this->httpClient = $httpClient;
     }
 
-    /**
-     * @Route("/", name="api_image", methods={"POST"})
-     * @SWG\Parameter(
-     *     name="image[tags]",
-     *     in="formData",
-     *     description="Tags",
-     *     type="array",
-     *     @SWG\Items(type="string"),
-     *     collectionFormat="multi",
-     *
-     * )
-     *
-     * @SWG\Response(
-     *     response=200,
-     *     description="Returns the  object of an Image",
-     *     @SWG\Schema(
-     *         type="object",
-     *         ref=@Model(type=Image::class, groups={"imageData"}),
-     *     ),
-     *
-     * )
-     */
-    public function index(Request $request): Response
-    {
-        print_r($request->getContent());
-        die('zxc');
-
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/Api/ImageController.php',
-        ]);
-    }
 
     /**
-     * @Route("/upload/new", name="api_image_upload/new", methods={"POST"})
+     * @Route("/upload/new", name="api_image_upload_new", methods={"POST"})
      * @Rest\View(serializerGroups={"uploaded"})
-     *
-     *
+     * @Security("has_role('ROLE_ADMIN')")
      * @SWG\Parameter(
      *     name="uploaded_image[image]",
      *     in="formData",
      *     description="Profile image",
      *     type="file",
-     *     required=true
+     *     required=false
      * )
      *
      * @SWG\Parameter(
@@ -102,11 +71,34 @@ class ImageController extends AbstractController
      *
      * )
      *
+     * @SWG\Response(
+     *     response="401",
+     *     description="When the user is not authenticated",
+     *     @SWG\Schema(
+     *         type="object",
+     *          @SWG\Property(property="code", type="string"),
+     *          @SWG\Property(property="message", type="string")
+     *     )
+     * )
+     *
+     * @SWG\Response(
+     *     response="403",
+     *     description="When the user not allowed to do this action.",
+     *     @SWG\Schema(
+     *         type="object",
+     *          @SWG\Property(property="code", type="string"),
+     *          @SWG\Property(property="message", type="string")
+     *     )
+     * )
      *
      * @SWG\Response(
      *     response=400,
      *     description="Bad request in form",
-     *
+     *     @SWG\Schema(
+     *         type="object",
+     *          @SWG\Property(property="code", type="string"),
+     *          @SWG\Property(property="message", type="string")
+     *     )
      * )
      *
      * @param Request $request
@@ -117,7 +109,7 @@ class ImageController extends AbstractController
     {
         $image = new Image();
         $form = $this->createForm(UploadedImageType::class, $image, ['csrf_protection' => false]);
-        $formRequest = $form->handleRequest($request);
+        $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $imageFile = $form->get('image')->getData();
@@ -148,14 +140,13 @@ class ImageController extends AbstractController
                 return $image;
             }
         }
-        return $formRequest;
-
+        throw new BadRequestHttpException('Form is not valid.');
     }
 
     /**
      * @Route("/external/new", name="api_image_external_new", methods={"POST"})
      * @Rest\View(serializerGroups={"external"})
-     *
+     * @Security("has_role('ROLE_ADMIN')")
      * @SWG\Parameter(
      *     name="external_image[provider]",
      *     in="formData",
@@ -192,11 +183,34 @@ class ImageController extends AbstractController
      *
      * )
      *
+     * @SWG\Response(
+     *     response="401",
+     *     description="When the user is not authenticated",
+     *     @SWG\Schema(
+     *         type="object",
+     *          @SWG\Property(property="code", type="string"),
+     *          @SWG\Property(property="message", type="string")
+     *     )
+     * )
+     *
+     * @SWG\Response(
+     *     response="403",
+     *     description="When the user not allowed to do this action.",
+     *     @SWG\Schema(
+     *         type="object",
+     *          @SWG\Property(property="code", type="string"),
+     *          @SWG\Property(property="message", type="string")
+     *     )
+     * )
      *
      * @SWG\Response(
      *     response=400,
      *     description="Bad request in form",
-     *
+     *     @SWG\Schema(
+     *         type="object",
+     *          @SWG\Property(property="code", type="string"),
+     *          @SWG\Property(property="message", type="string")
+     *     )
      * )
      *
      * @param Request $request
@@ -205,17 +219,10 @@ class ImageController extends AbstractController
     public function newExternal(Request $request, TagRepository $tagRepository)
     {
         $em = $this->getDoctrine()->getManager();
-//        print_r($request->request->all());
-//        die('zxc');
         $image = new Image();
         $form = $this->createForm(ExternalImageType::class, $image, ['csrf_protection' => false]);
-        $formRequest = $form->handleRequest($request);
-//        print_r($form->getData());
-//        die('xzc');
+        $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-//            print_r($form->get('tags')->getData());
-//            die('xzc');
-
             $response = $this->httpClient->request(
                 'GET',
                 $form->get('externalUrl')->getData()
@@ -224,16 +231,18 @@ class ImageController extends AbstractController
             if ($response) {
                 if (str_starts_with($response->getHeaders()['content-type'][0], 'image/')) {
                     $submittedTags = $request->query->get('tags');
-                    foreach ($submittedTags as $submittedTag) {
-                        $tag = $tagRepository->findOneByName($submittedTag);
-                        if ($tag) {
-                            $image->addTag($tag);
-                        } else {
-                            $tag = new Tag();
-                            $tag->setName($submittedTag);
-                            $em->persist($tag);
-                            $em->flush();
-                            $image->addTag($tag);
+                    if ($submittedTags) {
+                        foreach ($submittedTags as $submittedTag) {
+                            $tag = $tagRepository->findOneByName($submittedTag);
+                            if ($tag) {
+                                $image->addTag($tag);
+                            } else {
+                                $tag = new Tag();
+                                $tag->setName($submittedTag);
+                                $em->persist($tag);
+                                $em->flush();
+                                $image->addTag($tag);
+                            }
                         }
                     }
 
@@ -243,8 +252,7 @@ class ImageController extends AbstractController
                 }
             }
         }
-        return $formRequest;
-
+        throw new BadRequestHttpException('Form is not valid.');
     }
 
 

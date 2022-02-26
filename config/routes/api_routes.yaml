@@ -1,3 +1,7 @@
+api_user_login:
+  path: /api/login
+api_admin_login:
+  path: /api/admin/login
 api_controllers:
   resource: ../../src/Controller/Api
   type: annotation
