@@ -17,6 +17,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Swagger\Annotations as SWG;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -308,6 +309,17 @@ class ImageController extends AbstractController
      *
      * )
      * )
+     *
+     * @SWG\Response(
+     *     response=400,
+     *     description="Page value is not found.",
+     *     @SWG\Schema(
+     *         type="object",
+     *          @SWG\Property(property="code", type="string"),
+     *          @SWG\Property(property="message", type="string")
+     *     )
+     * )
+     *
      * @param string $tag
      * @param ImageRepository $imageRepository
      */
@@ -327,7 +339,10 @@ class ImageController extends AbstractController
 
         $nextPage = null;
         $previousPage = null;
-        
+        if ($pagination->getCurrentPageNumber() > $totalNumberOfPages
+        || $pagination->getCurrentPageNumber() < 1) {
+            throw new BadRequestHttpException('Page value is not valid');
+        }
         if ($pagination->getCurrentPageNumber() < $totalNumberOfPages) {
             $nextPage = $pagination->getCurrentPageNumber() +1;
         }
