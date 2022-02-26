@@ -360,7 +360,7 @@ class ImageController extends AbstractController
         return ['images' => $pagination->getItems(),
             'current_page'=>$pagination->getCurrentPageNumber(),
             'next_page' => $nextPage,
-            'prevoious_page' => $previousPage
+            'previous_page' => $previousPage
             ];
 
 
