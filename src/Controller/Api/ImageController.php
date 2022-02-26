@@ -48,7 +48,7 @@ class ImageController extends AbstractController
      *     in="formData",
      *     description="Profile image",
      *     type="file",
-     *     required=false
+     *     required=true
      * )
      *
      * @SWG\Parameter(
